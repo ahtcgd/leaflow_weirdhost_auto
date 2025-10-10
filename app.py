@@ -17,7 +17,6 @@ def run(playwright: Playwright) -> None:
     page.get_by_role("button", name="登录", exact=True).click()
     page.get_by_role("textbox", name="邮箱或手机号").click()
     page.get_by_role("textbox", name="邮箱或手机号").fill(LEAFLOW_EMAIL)
-    page.get_by_role("textbox", name="密码").click()
     page.get_by_role("textbox", name="密码").fill(LEAFLOW_PASSWORD)
     page.get_by_role("button", name="登录 / 注册").click()
     time.sleep(20)
