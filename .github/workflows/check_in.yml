@@ -1,31 +1,31 @@
-name: check_in
+name: 自动签到
 
 on:
   schedule:
     - cron: '0 5 * * *' # 每天UTC时间05:00运行（北京时间13:00）
-  workflow_dispatch:
+  workflow_dispatch:  # 允许手动触发
 
 jobs:
-  自动签到:
+  check_in:
     runs-on: ubuntu-latest
     env:
       LEAFLOW_EMAIL: ${{ secrets.LEAFLOW_EMAIL }}
       LEAFLOW_PASSWORD: ${{ secrets.LEAFLOW_PASSWORD }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repository # 步骤1: 检出（下载）你的代码到运行环境中
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python # 步骤2: 设置 Python 环境
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.x' # 使用最新的 Python 3
 
-      - name: Install Playwright and dependencies
+      - name: Install Playwright and dependencies # 步骤3: 安装 Playwright 及其浏览器依赖
         run: |
           python -m pip install --upgrade pip
           pip install playwright
-          playwright install --with-deps chromium
+          playwright install --with-deps chromium # 安装 Chromium 浏览器及其运行所需的所有依赖
 
-      - name: Run check in Script
+      - name: Run check in Script # 步骤4: 运行你的 Python 脚本
         run: python app.py
