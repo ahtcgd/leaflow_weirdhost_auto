@@ -41,7 +41,7 @@ def run(playwright: Playwright) -> None:
         # 等待包含“立即签到”的按钮出现，然后点击
         page.get_by_role("button").filter(has_text="立即签到").click()
 
-        print("任务执行成功: 签到操作已尝试。")
+        print("任务执行成功: 签到操作已完成。")
 
     except Exception as e:
         print(f"任务执行失败: {e}")
