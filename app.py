@@ -13,7 +13,7 @@ def run(playwright: Playwright) -> None:
         return
 
     # 3. 启用无头模式 (在 CI/CD 中推荐)
-    # 将 headless=False 改为 True 在生产环境中运行
+    # 将 headless=False 改为 True 为无头模式
     browser = playwright.chromium.launch(headless=True)
     context = browser.new_context()
     page = context.new_page()
@@ -40,10 +40,8 @@ def run(playwright: Playwright) -> None:
         page.get_by_text("签到试用").click()
         print("已进入签到页面...")
 
-        # 使用 frame_locator 查找 iframe 内的按钮 (这是同步 Playwright 推荐的做法)
         # Playwright 会等待元素可见并点击，如果超时则抛出异常
-        sign_in_button = page.frame_locator("#app iframe").get_by_role("button", name=" 立即签到")
-        sign_in_button.click()
+        page.locator("#app iframe").content_frame.locator("form").click()
 
         # 成功点击后，打印最终成功消息
         print("任务执行成功: 签到操作已完成。")
