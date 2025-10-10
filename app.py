@@ -29,24 +29,25 @@ def run(playwright: Playwright) -> None:
         page.get_by_role("textbox", name="邮箱或手机号").fill(LEAFLOW_EMAIL)
         page.get_by_role("textbox", name="密码").fill(LEAFLOW_PASSWORD)
 
-        # 点击登录/注册，Playwright会自动等待导航完成
         page.get_by_role("button", name="登录 / 注册").click()
 
-        # 等待“工作区”链接出现，表示登录成功
+        # Playwright会等待工作区链接出现后才点击
         page.get_by_role("link", name="工作区").click()
 
-        # 等待点击后的页面加载，然后点击“签到试用”
+        # Playwright会等待签到试用文本可见后才点击
         page.get_by_text("签到试用").click()
 
-        # 等待包含“立即签到”的按钮出现，然后点击
-        page.get_by_role("button").filter(has_text="立即签到").click()
+        # Playwright会等待包含“立即签到”的按钮出现（最多 30s）才点击
+        # 如果您确定该按钮加载慢，可以增加超时时间，但通常 Playwright 默认的 30s 足够
+        try:
+            page.get_by_role("button").filter(has_text="立即签到").click(timeout=45000) # 延长到 45 秒
+            print("任务执行成功: 立即签到已尝试点击。")
 
-        print("任务执行成功: 签到操作已完成。")
-
-    except Exception as e:
-        print(f"任务执行失败: {e}")
-        # 可选：如果失败，保存截图用于调试
-        # page.screenshot(path="error_screenshot.png")
+        except Exception as e:
+            # 如果再次失败，打印出错误，并尝试截图以供调试
+            print(f"任务执行失败: 签到按钮点击超时。{e}")
+            # 在 GitHub Actions 运行结束后，您可以下载 artifacts 查看这张截图
+            page.screenshot(path="failed_sign_in.png")
 
     finally:
         # ---------------------
