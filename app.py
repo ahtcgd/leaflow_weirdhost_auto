@@ -40,7 +40,9 @@ def run(playwright: Playwright) -> None:
         # Playwright会等待包含“立即签到”的按钮出现（最多 30s）才点击
         # 如果您确定该按钮加载慢，可以增加超时时间，但通常 Playwright 默认的 30s 足够
         try:
-            page.get_by_role("button").filter(has_text="立即签到").click(timeout=45000) # 延长到 45 秒
+            page.locator("div").filter(has_text=re.compile(r"^签到$")).nth(1).click()
+            page.get_by_text("立即签到", exact=True).click()
+            # page.get_by_role("button").filter(has_text="立即签到").click(timeout=45000) # 延长到 45 秒
             print("任务执行成功: 立即签到已尝试点击。")
 
         except Exception as e:
