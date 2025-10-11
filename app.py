@@ -13,7 +13,7 @@ def run(playwright: Playwright) -> None:
 
     WEIRDHOST_EMAIL = os.environ.get('WEIRDHOST_EMAIL', '')
     WEIRDHOST_PASSWORD = os.environ.get('WEIRDHOST_PASSWORD', '')
-    remember_web_cookie = os.environ.get('REMEMBER_WEB_COOKIE')
+    REMEMBER_WEB_COOKIE = os.environ.get('REMEMBER_WEB_COOKIE')
     WEIRDHOST_SERVER_URL = os.environ.get('WEIRDHOST_SERVER_URL', '')
 
     # 启用无头模式 (在 CI/CD 中推荐)
@@ -56,11 +56,11 @@ def run(playwright: Playwright) -> None:
     # --- weirdhost执行步骤 ---
     try:
         # --- 方案一：优先尝试使用 Cookie 会话登录 ---
-        if remember_web_cookie:
+        if REMEMBER_WEB_COOKIE:
             print("检测到 REMEMBER_WEB_COOKIE，尝试使用 Cookie 登录...")
             session_cookie = {
                 'name': 'remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d',
-                'value': remember_web_cookie,
+                'value': REMEMBER_WEB_COOKIE,
                 'domain': 'hub.weirdhost.xyz',
                 'path': '/',
                 'expires': int(time.time()) + 3600 * 24 * 365, # 设置一个较长的过期时间
@@ -76,17 +76,17 @@ def run(playwright: Playwright) -> None:
             except Exception:
                 print(f"页面加载超时（90秒）。")
                 # page.screenshot(path="goto_timeout_error.png")
-                remember_web_cookie = None
+                REMEMBER_WEB_COOKIE = None
 
             if "login" in page.url or "auth" in page.url:
                 print("Cookie 登录失败或会话已过期，将回退到邮箱密码登录。")
                 page.context.clear_cookies()
-                remember_web_cookie = None
+                REMEMBER_WEB_COOKIE = None
             else:
                 print("Cookie 登录成功，已进入服务器页面。")
 
         # --- 方案二：如果 Cookie 方案失败或未提供，则使用邮箱密码登录 ---
-        if WEIRDHOST_EMAIL and WEIRDHOST_PASSWORD and not remember_web_cookie:
+        if WEIRDHOST_EMAIL and WEIRDHOST_PASSWORD and not REMEMBER_WEB_COOKIE:
             print("使用EMAIL PASSWORD 开始执行继期任务...")
             page.goto("https://hub.weirdhost.xyz/auth/login")
             page.locator("input[name=\"username\"]").click()
