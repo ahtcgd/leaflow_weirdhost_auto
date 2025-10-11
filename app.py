@@ -45,7 +45,7 @@ def run(playwright: Playwright) -> None:
             page.locator("#app iframe").content_frame.locator("form").click()
             print("任务执行成功: 签到操作已完成。")
         except Exception as e:
-            print("今日已经签到")
+            print("今日已经签到！")
 
     except Exception as e:
         # 如果在任何步骤失败，包括找不到签到按钮超时，则执行此块
