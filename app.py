@@ -23,7 +23,7 @@ def run(playwright: Playwright) -> None:
 
     # --- leaflow执行步骤 ---
     try:
-        print("开始执行签到任务...")
+        print("开始执行leaflow签到任务...")
         page.goto("https://leaflow.net/")
 
         page.get_by_role("button", name="Close").click()
@@ -54,6 +54,7 @@ def run(playwright: Playwright) -> None:
 
     # --- weirdhost执行步骤 ---
     try:
+        print("开始执行weirdhost继期任务...")
         # --- 方案一：优先尝试使用 Cookie 会话登录 ---
         if REMEMBER_WEB_COOKIE:
             print("检测到 REMEMBER_WEB_COOKIE，尝试使用 Cookie 登录...")
@@ -96,7 +97,7 @@ def run(playwright: Playwright) -> None:
             page.get_by_role("button", name="로그인", exact=True).click()
             page.goto("https://hub.weirdhost.xyz/")
             print("已进入weirdhost页面...")
-            page.goto(WEIRDHOST_SERVER_URL)
+            page.goto(WEIRDHOST_SERVER_URL, wait_until="domcontentloaded", timeout=90000)
             print("已进入继期页面...")
 
         # 检查服务器是否过期，如果过期则继期
