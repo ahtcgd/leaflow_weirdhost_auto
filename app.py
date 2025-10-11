@@ -126,7 +126,7 @@ def run(playwright: Playwright) -> None:
                 print("✅ 已经成功完成继期。")
 
     except Exception as e:
-        # 如果在任何步骤失败，包括找不到签到按钮超时，则执行此块
+        # 如果在任何步骤失败，包括找不到继期按钮超时，则执行此块
         print("任务执行失败！")
         # 打印原始错误信息用于调试
         print(f"详细错误信息: {e}")
