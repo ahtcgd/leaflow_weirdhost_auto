@@ -5,7 +5,6 @@ import time
 from datetime import datetime, timedelta
 from playwright.sync_api import Playwright, sync_playwright, expect
 
-
 def run(playwright: Playwright) -> None:
     # 环境变量
     LEAFLOW_EMAIL = os.environ.get('LEAFLOW_EMAIL', '')
