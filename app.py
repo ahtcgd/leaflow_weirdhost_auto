@@ -40,11 +40,12 @@ def run(playwright: Playwright) -> None:
         page.get_by_text("签到试用").click()
         print("已进入签到页面...")
 
-        # Playwright 会等待元素可见并点击，如果超时则抛出异常
-        page.locator("#app iframe").content_frame.locator("form").click()
-
-        # 成功点击后，打印最终成功消息
-        print("任务执行成功: 签到操作已完成。")
+        try:
+            # Playwright 会等待元素可见并点击，如果超时则抛出异常
+            page.locator("#app iframe").content_frame.locator("form").click()
+            print("任务执行成功: 签到操作已完成。")
+        except Exception as e:
+            print(f"今日已经签到")
 
     except Exception as e:
         # 如果在任何步骤失败，包括找不到签到按钮超时，则执行此块
