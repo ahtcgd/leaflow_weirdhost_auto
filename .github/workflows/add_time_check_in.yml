@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # 允许手动触发
 
 jobs:
-  check_in:
+  add_time_check_in:
     runs-on: ubuntu-latest
     env:
       LEAFLOW_EMAIL: ${{ secrets.LEAFLOW_EMAIL }}
