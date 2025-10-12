@@ -19,7 +19,7 @@ def run(playwright: Playwright) -> None:
 
     # 启用无头模式 (在 CI/CD 中推荐)
     # 将 headless=False 改为 True 为无头模式
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(headless=True)
     context = browser.new_context()
     page = context.new_page()
     # 用于追踪登录状态
