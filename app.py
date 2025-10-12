@@ -170,13 +170,13 @@ def run(playwright: Playwright) -> None:
                 now_kst = datetime.now(KST)
                 print(f"Now KST time: {now_kst}")
 
-                # 避免毫秒误差，增加 5 秒的极短缓冲
-                buffer_time = timedelta(seconds=5)
-                if expiration_dt > now_kst + timedelta(seconds=5):
+                # 提前1天继期
+                buffer_time = timedelta(days=1)   # seconds minutes hours
+                if expiration_dt > now_kst + buffer_time:
                     print("✅ 还未过期，不执行操作")
                 else:
                     page.get_by_role("button", name="시간추가").click()
-                    print("✅ 已经成功完成继期。")
+                    print("✅ 已经进入 24 小时继期窗口，成功完成继期。")
             else:
                 print("❌ 未能在页面上找到有效日期字符串。")
         else:
