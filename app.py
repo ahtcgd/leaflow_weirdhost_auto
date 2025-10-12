@@ -100,9 +100,11 @@ def run(playwright: Playwright) -> None:
             page.goto(WEIRDHOST_SERVER_URL, wait_until="domcontentloaded", timeout=90000)
             print("已进入继期页面...")
 
-        # 检查服务器是否过期，如果过期则继期
-        date_element = page.get_by_text(re.compile(r"유통기한\s\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:")).locator('text=유통기한')
-        full_text = date_element.inner_text()
+        # 直接定位到包含完整日期字符串的元素
+        date_locator = page.get_by_text(re.compile(r"유통기한\s\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:"))
+        # 使用 .text_content() 或 .inner_text() 获取内容。Playwright 会自动等待元素出现。
+        full_text = date_locator.text_content(timeout=45000) # 增加到 45 秒等待时间
+        print(f"定位到的元素内容: {full_text}")
         match = re.search(r"(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2})", full_text)
         if match:
             expiration_str = match.group(1)
