@@ -173,10 +173,10 @@ def run(playwright: Playwright) -> None:
                 # 提前1天继期
                 buffer_time = timedelta(days=1)   # seconds minutes hours
                 if expiration_dt > now_kst + buffer_time:
-                    print("✅ 还未过期，不执行操作")
+                    print("✅ 未到24小时继期窗口，不执行操作")
                 else:
                     page.get_by_role("button", name="시간추가").click()
-                    print("✅ 已经进入 24 小时继期窗口，成功完成继期。")
+                    print("✅ 已经进入24小时继期窗口，成功完成继期。")
             else:
                 print("❌ 未能在页面上找到有效日期字符串。")
         else:
