@@ -84,20 +84,16 @@ def run(playwright: Playwright) -> None:
         page.get_by_text("签到试用").click()
         print("已进入签到页面...")
 
-        # 1. 使用 FrameLocator 正确定位到 iframe 内部
-        iframe_frame_locator = page.locator("#app iframe").content_frame
-
-        # 2. 定位到签到按钮（使用部分匹配，忽略特殊符号）
-        sign_in_button = iframe_frame_locator.get_by_role("button", name="立即签到")
-
-        # 3. 检查按钮状态（是否启用/变灰）
-        if sign_in_button.is_enabled(timeout=5000):
-            # 按钮启用，执行点击
-            sign_in_button.click(timeout=5000)
+        try:
+            # 1. 获取 iframe 的 FrameLocator
+            iframe_form_locator = page.locator("#app iframe").content_frame.locator("form")
+            # 2. 显式等待 form 元素可见（给予它较长的加载时间）
+            iframe_form_locator.wait_for(state="visible", timeout=20000) # 20秒等待
+            # 3. 执行点击操作
+            iframe_form_locator.click()
             print("✅ 任务执行成功: 签到操作已完成。")
-        else:
-            # 按钮禁用（已变灰/已签到）
-            print("✅ 今日已经签到！（按钮处于禁用状态）")
+        except TimeoutError as te:
+            print("✅ 今日可能已经签到！(或 iframe 内部元素加载超时)")
 
     except TimeoutError as te:
         print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
