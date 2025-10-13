@@ -85,6 +85,8 @@ def run(playwright: Playwright) -> None:
         print("已进入签到页面...")
 
         try:
+            print("尝试定位并点击签到按钮...")
+
             # 1. 确保 iframe 元素可见并存在
             iframe_locator = page.locator("#app iframe")
             iframe_locator.wait_for(state="visible", timeout=10000)
@@ -94,18 +96,25 @@ def run(playwright: Playwright) -> None:
             if not iframe_content:
                 raise Exception("无法获取 iframe 内容框架")
 
-            # 3. 定位并点击签到按钮 (使用部分匹配来忽略前面的符号)
-            # 查找包含 "立即签到" 文本的任何元素
-            sign_in_button = iframe_content.get_by_text("立即签到")
+            # 3. 使用部分匹配定位签到按钮（忽略特殊符号）
+            sign_in_button = iframe_content.get_by_role("button", name="立即签到")
 
-            # 检查元素是否可见，增加稳定性
-            sign_in_button.wait_for(state="visible", timeout=5000)
+            # 4. 关键检查：判断按钮是否启用（即没有“变灰”）
+            # Playwright 会等待按钮在 5000ms 内变为启用状态
+            if sign_in_button.is_enabled(timeout=5000):
 
-            # 4. 执行点击
-            sign_in_button.click(timeout=5000)
-            print("✅ 任务执行成功: 签到操作已完成。")
+                # 按钮是启用的，执行点击
+                sign_in_button.click(timeout=5000)
+                print("✅ 任务执行成功: 签到操作已完成。")
+            else:
+                # 按钮是禁用（变灰）状态
+                print("✅ 今日已经签到！（按钮处于禁用状态）")
         except Exception as e:
-            print("✅ 今日已经签到！")
+            # 捕获其他异常，如定位超时、iframe加载失败等
+            if "Timeout" in str(e):
+                print(f"❌ 签到操作失败：Playwright 操作超时 ({e})")
+            else:
+                print(f"❌ 任务执行失败！详细错误信息: {e}")
 
     except TimeoutError as te:
         print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
