@@ -19,7 +19,7 @@ def run(playwright: Playwright) -> None:
 
     # 启用无头模式 (在 CI/CD 中推荐)
     # 将 headless=False 改为 True 为无头模式
-    browser = playwright.chromium.launch(headless=True)
+    browser = playwright.chromium.launch(headless=False)
     context = browser.new_context()
     page = context.new_page()
     # 用于追踪登录状态
@@ -84,23 +84,27 @@ def run(playwright: Playwright) -> None:
         page.get_by_text("签到试用").click()
         print("已进入签到页面...")
 
-        try:
-            # 1. 获取 iframe 的 FrameLocator
-            iframe_form_locator = page.locator("#app iframe").content_frame.locator("form")
-            # 2. 显式等待 form 元素可见（给予它较长的加载时间）
-            iframe_form_locator.wait_for(state="visible", timeout=20000) # 20秒等待
-            # 3. 执行点击操作
-            iframe_form_locator.click()
-            print("✅ 任务执行成功: 签到操作已完成。")
-        except TimeoutError as te:
-            print("✅ 今日可能已经签到！(或 iframe 内部元素加载超时)")
+        # 1. 定位到签到按钮（假设它包含了 Unicode 符号）
+        sign_in_locator = page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到")
+        # 2. 检查是否未签到（可点击状态）
+        if sign_in_locator.is_enabled(timeout=10000):
+            # 3. 点击按钮
+            sign_in_locator.click()
+            print("已点击签到按钮。等待服务器响应...")
+
+            # 4. **关键等待步骤：等待按钮变为禁用状态 (已签到)**
+            # Playwright 会等待按钮在 15 秒内变为 disabled
+            sign_in_locator.wait_for(state="disabled", timeout=15000)
+            print("✅ 任务执行成功: 签到操作已完成（按钮已变灰）。")
+        else:
+            print("✅ 今日已经签到！（按钮处于禁用状态）")
 
     except TimeoutError as te:
         print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-        page.screenshot(path="error_screenshot.png") # 超时时截图
+        # page.screenshot(path="error_screenshot.png") # 超时时截图
     except Exception as e:
         print("❌ 任务执行失败！")
-        page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
+        # page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
         print(f"详细错误信息: {e}")
 
     # --- weirdhost执行步骤 ---
