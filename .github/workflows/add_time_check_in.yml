@@ -34,3 +34,13 @@ jobs:
 
       - name: Run check in Script # 运行你的 Python 脚本
         run: python app.py
+
+      - name: Upload Error Screenshot
+        uses: actions/upload-artifact@v4
+        if: always() # 总是运行，确保无论前一步成功或失败，都能检查是否有截图需要上传
+        with:
+          name: error-screenshot
+          path: |
+            error_screenshot.png
+            final_error_screenshot.png
+          retention-days: 1           # 设置产物保留天数
