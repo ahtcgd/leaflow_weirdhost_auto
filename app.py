@@ -97,10 +97,10 @@ def run(playwright: Playwright) -> None:
 
     except TimeoutError as te:
         print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-        # page.screenshot(path="timeout_error_screenshot.png") # 超时时截图
+        page.screenshot(path="error_screenshot.png") # 超时时截图
     except Exception as e:
         print("❌ 任务执行失败！")
-        # page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
+        page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
         print(f"详细错误信息: {e}")
 
     # --- weirdhost执行步骤 ---
@@ -189,7 +189,7 @@ def run(playwright: Playwright) -> None:
 
     except TimeoutError as te:
         print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-        # page.screenshot(path="timeout_error_screenshot.png") # 超时时截图
+        # page.screenshot(path="error_screenshot.png") # 超时时截图
     except Exception as e:
         print("❌ 任务执行失败！")
         # page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
