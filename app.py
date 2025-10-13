@@ -92,9 +92,8 @@ def run(playwright: Playwright) -> None:
             sign_in_locator.click()
             print("已点击签到按钮。等待服务器响应...")
 
-            # 4. **关键等待步骤：等待按钮变为禁用状态 (已签到)**
-            # Playwright 会等待按钮在 15 秒内变为 disabled
-            sign_in_locator.wait_for(state="disabled", timeout=15000)
+            # 4. Playwright 会等待按钮在 15 秒内变为 disabled
+            expect(sign_in_locator).to_be_disabled(timeout=15000)
             print("✅ 任务执行成功: 签到操作已完成（按钮已变灰）。")
         else:
             print("✅ 今日已经签到！（按钮处于禁用状态）")
