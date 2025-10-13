@@ -85,7 +85,24 @@ def run(playwright: Playwright) -> None:
         print("已进入签到页面...")
 
         try:
-            page.locator("#app iframe").content_frame.locator("form").click()
+            # 1. 确保 iframe 元素可见并存在
+            iframe_locator = page.locator("#app iframe")
+            iframe_locator.wait_for(state="visible", timeout=10000)
+
+            # 2. 获取 iframe 的内容框架
+            iframe_content = iframe_locator.content_frame()
+            if not iframe_content:
+                raise Exception("无法获取 iframe 内容框架")
+
+            # 3. 定位并点击签到按钮 (使用部分匹配来忽略前面的符号)
+            # 查找包含 "立即签到" 文本的任何元素
+            sign_in_button = iframe_content.get_by_text("立即签到")
+
+            # 检查元素是否可见，增加稳定性
+            sign_in_button.wait_for(state="visible", timeout=5000)
+
+            # 4. 执行点击
+            sign_in_button.click(timeout=5000)
             print("✅ 任务执行成功: 签到操作已完成。")
         except Exception as e:
             print("✅ 今日已经签到！")
@@ -109,7 +126,7 @@ def run(playwright: Playwright) -> None:
             print("检测到 REMEMBER_WEB_COOKIE，尝试使用单一 Cookie 登录...")
             # 清理 context 以确保新的登录是干净的
             context.clear_cookies()
-            # 构造单一 Cookie 列表
+            # 构造单一Cookie列表 将cookie的过期时间延长至从当前时间起大约一年
             session_cookie = {
                 'name': 'remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d',
                 'value': remember_web_cookie,
@@ -121,7 +138,7 @@ def run(playwright: Playwright) -> None:
                 'sameSite': 'Lax'
             }
             is_logged_in = try_cookie_login(context, page, [session_cookie], LOGIN_URL)
-            # 登录成功后，保存新的 cookies(可选)
+            # 登录成功后，保存新的填入cookies为文件(可选)
             # if is_logged_in:
             #     save_cookies(context)
 
