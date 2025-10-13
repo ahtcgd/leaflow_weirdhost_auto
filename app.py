@@ -106,6 +106,8 @@ def run(playwright: Playwright) -> None:
         # page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
         print(f"详细错误信息: {e}")
 
+    sleep(15)
+
     # --- weirdhost执行步骤 ---
     try:
         print("开始执行weirdhost继期任务...")
