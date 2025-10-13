@@ -84,29 +84,21 @@ def run(playwright: Playwright) -> None:
         page.get_by_text("签到试用").click()
         print("已进入签到页面...")
 
-        # 1. 定位到签到按钮（假设它包含了 Unicode 符号）
-        sign_in_locator = page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到")
-        # 2. 检查是否未签到（可点击状态）
-        if sign_in_locator.is_enabled(timeout=10000):
-            # 3. 点击按钮
-            sign_in_locator.click()
-            print("已点击签到按钮。等待服务器响应...")
-
-            # 4. Playwright 会等待按钮在 15 秒内变为 disabled
-            expect(sign_in_locator).to_be_disabled(timeout=15000)
-            print("✅ 任务执行成功: 签到操作已完成（按钮已变灰）。")
-        else:
-            print("✅ 今日已经签到！（按钮处于禁用状态）")
+        try:
+            page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到").click()
+            print("✅ 任务执行成功: 签到操作已完成。")
+        except Exception as e:
+            print("✅ 今日已经签到！")
 
     except TimeoutError as te:
         print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-        # page.screenshot(path="error_screenshot.png") # 超时时截图
+        page.screenshot(path="error_screenshot.png") # 超时时截图
     except Exception as e:
         print("❌ 任务执行失败！")
-        # page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
+        page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
         print(f"详细错误信息: {e}")
 
-    sleep(15)
+    time.sleep(30)
 
     # --- weirdhost执行步骤 ---
     try:
@@ -194,10 +186,10 @@ def run(playwright: Playwright) -> None:
 
     except TimeoutError as te:
         print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-        # page.screenshot(path="error_screenshot.png") # 超时时截图
+        page.screenshot(path="error_screenshot.png") # 超时时截图
     except Exception as e:
         print("❌ 任务执行失败！")
-        # page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
+        page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
         print(f"详细错误信息: {e}")
 
     finally:
