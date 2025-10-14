@@ -217,8 +217,8 @@ def run(playwright: Playwright) -> None:
                     page.get_by_role("button", name="시간추가").click()
                     print("✅ 已经进入24小时继期窗口，成功完成继期。")
                     # 发送到Telegram消息
-                    beijing_tz = pytz.timezone('Asia/Shanghai')
-                    current_time = datetime.now(beijing_tz).strftime("%Y-%m-%d %H:%M")
+                    CST = pytz.timezone('Asia/Shanghai')
+                    current_time = datetime.now(CST).strftime("%Y-%m-%d %H:%M")
                     content = f"Server ID: {WEIRDHOST_EMAIL or 'Unknown'}\n"
                     content += f"Renew status: Success\n"
                     content += f"Last renewal time: {current_time}\n"
