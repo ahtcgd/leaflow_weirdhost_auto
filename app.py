@@ -15,7 +15,6 @@ def run(playwright: Playwright) -> None:
     WEIRDHOST_PASSWORD = os.environ.get('WEIRDHOST_PASSWORD', '')
     LOGIN_URL = os.environ.get('LOGIN_URL', '')
     COOKIE_FILE = os.environ.get('COOKIE_FILE', 'cookies.json')
-    # 使用单一cookie时可不填邮箱密码
     remember_web_cookie = os.environ.get('REMEMBER_WEB_COOKIE', '')
 
     # Telegram Bot 通知配置（可选）
