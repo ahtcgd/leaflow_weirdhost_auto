@@ -158,11 +158,14 @@ def run(playwright: Playwright) -> None:
                 try:
                     page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到").click()
                     print(f"✅ 任务执行成功: [{email_id}] 签到操作已完成。")
-                    content = f"[{email_id}] 签到操作已完成'}"
+                    content = f"LEAFLOW帐号：{email_id} 签到操作已完成！"
                     telegram_message = f"**LEAFLOW签到信息**\n{content}"
                     send_telegram_message(telegram_message)
                 except Exception as e:
                     print(f"✅ [{email_id}] 今日已经签到！")
+                    content = f"LEAFLOW帐号：{email_id} 今日已经签到！"
+                    telegram_message = f"**LEAFLOW签到信息**\n{content}"
+                    send_telegram_message(telegram_message)
 
             except TimeoutError as te:
                 print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
@@ -259,8 +262,9 @@ def run(playwright: Playwright) -> None:
                     buffer_time = timedelta(days=1)
                     if expiration_dt > now_kst + buffer_time:
                         print("✅ 未到24小时继期窗口，不执行操作")
-                        content = f"{expiration_dt} 未到24小时继期窗口，不执行操作!'}"
-                        telegram_message = f"**Weirdhost Server Renewal Notification**\n{content}"
+                        content = f"WEIRDHOST帐号: {WEIRDHOST_EMAIL}帐号 过期时间：{expiration_dt}\n"
+                        content += f"续期状态: 未到24小时继期窗口，不执行操作\n}"
+                        telegram_message = f"**Weirdhost继期信息**\n{content}"
                         send_telegram_message(telegram_message)
                     else:
                         page.get_by_role("button", name="시간추가").click()
@@ -268,10 +272,10 @@ def run(playwright: Playwright) -> None:
 
                         CST = pytz.timezone('Asia/Shanghai')
                         current_time = datetime.now(CST).strftime("%Y-%m-%d %H:%M")
-                        content = f"Server ID: {WEIRDHOST_EMAIL or 'Unknown'}\n"
-                        content += f"Renew status: Success\n"
-                        content += f"Last renewal time: {current_time}\n"
-                        telegram_message = f"**Weirdhost Server Renewal Notification**\n{content}"
+                        content = f"WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
+                        content += f"续期状态: 成功\n"
+                        content += f"继期时间: {current_time}\n"
+                        telegram_message = f"**Weirdhost继期信息**\n{content}"
                         send_telegram_message(telegram_message)
                 else:
                     print("❌ 未能在页面上找到有效日期字符串。")
