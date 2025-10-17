@@ -158,6 +158,9 @@ def run(playwright: Playwright) -> None:
                 try:
                     page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到").click()
                     print(f"✅ 任务执行成功: [{email_id}] 签到操作已完成。")
+                    content = f"[{email_id}] 签到操作已完成'}"
+                    telegram_message = f"**LEAFLOW签到信息**\n{content}"
+                    send_telegram_message(telegram_message)
                 except Exception as e:
                     print(f"✅ [{email_id}] 今日已经签到！")
 
@@ -176,7 +179,7 @@ def run(playwright: Playwright) -> None:
 
         time.sleep(30) # 两个主要任务之间的延迟
     else:
-         print("\n--- ℹ️ 跳过 Leaflow 任务：未配置 LEAFLOW_ACCOUNTS 或 LEAFLOW_EMAIL/PASSWORD。 ---")
+         print("\n--- ℹ️ 跳过 Leaflow 任务：未配置 LEAFLOW_ACCOUNTS。 ---")
          time.sleep(5) # 保持延迟
 
 
@@ -256,6 +259,9 @@ def run(playwright: Playwright) -> None:
                     buffer_time = timedelta(days=1)
                     if expiration_dt > now_kst + buffer_time:
                         print("✅ 未到24小时继期窗口，不执行操作")
+                        content = f"{expiration_dt} 未到24小时继期窗口，不执行操作!'}"
+                        telegram_message = f"**Weirdhost Server Renewal Notification**\n{content}"
+                        send_telegram_message(telegram_message)
                     else:
                         page.get_by_role("button", name="시간추가").click()
                         print("✅ 已经进入24小时继期窗口，成功完成继期。")
@@ -266,7 +272,7 @@ def run(playwright: Playwright) -> None:
                         content += f"Renew status: Success\n"
                         content += f"Last renewal time: {current_time}\n"
                         telegram_message = f"**Weirdhost Server Renewal Notification**\n{content}"
-                        send_telegram_message(telegram_message, WEIRDHOST_EMAIL.split('@')[0] if WEIRDHOST_EMAIL else "WH_Unknown")
+                        send_telegram_message(telegram_message)
                 else:
                     print("❌ 未能在页面上找到有效日期字符串。")
             else:
