@@ -10,8 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
-      LEAFLOW_EMAIL: ${{ secrets.LEAFLOW_EMAIL }}
-      LEAFLOW_PASSWORD: ${{ secrets.LEAFLOW_PASSWORD }}
+      LEAFLOW_EMAIL: ${{ secrets.LEAFLOW_ACCOUNTS }}
       WEIRDHOST_EMAIL: ${{ secrets.WEIRDHOST_EMAIL }}
       WEIRDHOST_PASSWORD: ${{ secrets.WEIRDHOST_PASSWORD }}
       REMEMBER_WEB_COOKIE: ${{ secrets.REMEMBER_WEB_COOKIE }}
