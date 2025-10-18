@@ -43,7 +43,7 @@ def run(playwright: Playwright) -> None:
     # Leaflow 多账户配置
     LEAFLOW_ACCOUNTS = parse_accounts(accounts_source_str)
 
-    # Weirdhost 单账户配置 (保持原样)
+    # Weirdhost 单账户配置
     WEIRDHOST_EMAIL = os.environ.get('WEIRDHOST_EMAIL', '')
     WEIRDHOST_PASSWORD = os.environ.get('WEIRDHOST_PASSWORD', '')
     LOGIN_URL = os.environ.get('LOGIN_URL', '')
@@ -79,7 +79,7 @@ def run(playwright: Playwright) -> None:
             print(f"Failed to send Telegram notification: {e}")
             return False
 
-    # 保存为 cookies.json (只在 Weirdhost 单账户逻辑中使用)
+    # 保存为 cookies.json
     def save_cookies(context):
         cookies = context.cookies()
         try:
@@ -89,7 +89,7 @@ def run(playwright: Playwright) -> None:
         except Exception as e:
             print(f"❌ 错误：保存cookies文件时发生未知错误：{e}")
 
-    # 从文件加载cookies (只在 Weirdhost 单账户逻辑中使用)
+    # 从文件加载cookies
     def load_cookies_from_file(file_path):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
@@ -100,7 +100,7 @@ def run(playwright: Playwright) -> None:
             print(f"❌ 错误：加载 {COOKIE_FILE} 文件时发生未知错误或 {COOKIE_FILE} 文件文件不存在")
             return None
 
-    # 尝试使用指定的 cookies 登录并返回是否成功 (只在 Weirdhost 单账户逻辑中使用)
+    # 尝试使用指定的 cookies 登录并返回是否成功
     def try_cookie_login(context, page, cookies_to_add: list, login_url: str) -> bool:
         if not cookies_to_add:
             return False
@@ -157,12 +157,12 @@ def run(playwright: Playwright) -> None:
                 try:
                     page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到").click()
                     print(f"✅ 任务执行成功: [{email_id}] 签到操作已完成。")
-                    content = f"LEAFLOW帐号：{email_id} 签到操作已完成！"
+                    content = f"🚀LEAFLOW帐号：{email_id} 签到操作已完成！"
                     telegram_message = f"**LEAFLOW签到信息**\n{content}"
                     send_telegram_message(telegram_message)
                 except Exception as e:
                     print(f"✅ [{email_id}] 今日已经签到！")
-                    content = f"LEAFLOW帐号：{email_id} 今日已经签到！"
+                    content = f"🚀LEAFLOW帐号：{email_id} 今日已经签到！"
                     telegram_message = f"**LEAFLOW签到信息**\n{content}"
                     send_telegram_message(telegram_message)
 
@@ -261,9 +261,9 @@ def run(playwright: Playwright) -> None:
                     buffer_time = timedelta(days=1)
                     if expiration_dt > now_kst + buffer_time:
                         print("✅ 未到24小时继期窗口，不执行操作")
-                        content = f"WEIRDHOST帐号: {WEIRDHOST_EMAIL}帐号\n"
-                        content += f"过期时间：{expiration_dt}\n"
-                        content += f"续期状态: 未到24小时继期窗口，不执行操作\n"
+                        content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}帐号\n"
+                        content += f"⏰过期时间：{expiration_dt}\n"
+                        content += f"🚀续期状态: 未到24小时继期窗口，不执行操作\n"
                         telegram_message = f"**Weirdhost继期信息**\n{content}"
                         send_telegram_message(telegram_message)
                     else:
@@ -272,9 +272,9 @@ def run(playwright: Playwright) -> None:
 
                         CST = pytz.timezone('Asia/Shanghai')
                         current_time = datetime.now(CST).strftime("%Y-%m-%d %H:%M")
-                        content = f"WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
-                        content += f"续期状态: 成功\n"
-                        content += f"继期时间: {current_time}\n"
+                        content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
+                        content += f"⏰继期时间: {current_time}\n"
+                        content += f"🚀续期状态: 成功\n"
                         telegram_message = f"**Weirdhost继期信息**\n{content}"
                         send_telegram_message(telegram_message)
                 else:
