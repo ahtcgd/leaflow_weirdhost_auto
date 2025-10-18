@@ -29,7 +29,6 @@ def parse_accounts(accounts_str: str) -> AccountCredentials:
 
     return accounts
 
-
 def run(playwright: Playwright) -> None:
     # --- 环境变量配置 ---
     # ---------------------------------------------------------------------------------
@@ -262,7 +261,8 @@ def run(playwright: Playwright) -> None:
                     buffer_time = timedelta(days=1)
                     if expiration_dt > now_kst + buffer_time:
                         print("✅ 未到24小时继期窗口，不执行操作")
-                        content = f"WEIRDHOST帐号: {WEIRDHOST_EMAIL}帐号 过期时间：{expiration_dt}\n"
+                        content = f"WEIRDHOST帐号: {WEIRDHOST_EMAIL}帐号\n"
+                        content += f"过期时间：{expiration_dt}\n"
                         content += f"续期状态: 未到24小时继期窗口，不执行操作\n"
                         telegram_message = f"**Weirdhost继期信息**\n{content}"
                         send_telegram_message(telegram_message)
