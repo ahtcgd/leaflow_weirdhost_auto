@@ -157,12 +157,14 @@ def run(playwright: Playwright) -> None:
                 try:
                     page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到").click()
                     print(f"✅ 任务执行成功: [{email_id}] 签到操作已完成。")
-                    content = f"🚀LEAFLOW帐号：{email_id} 签到操作已完成！"
+                    content = f"🆔LEAFLOW帐号: {email_id}\n"
+                    content += f"🚀签到状态: 签到操作已完成\n"
                     telegram_message = f"**LEAFLOW签到信息**\n{content}"
                     send_telegram_message(telegram_message)
                 except Exception as e:
                     print(f"✅ [{email_id}] 今日已经签到！")
-                    content = f"🚀LEAFLOW帐号：{email_id} 今日已经签到！"
+                    content = f"🆔LEAFLOW帐号: {email_id}\n"
+                    content += f"🚀签到状态: 今日已经签到！\n"
                     telegram_message = f"**LEAFLOW签到信息**\n{content}"
                     send_telegram_message(telegram_message)
 
@@ -261,7 +263,7 @@ def run(playwright: Playwright) -> None:
                     buffer_time = timedelta(days=1)
                     if expiration_dt > now_kst + buffer_time:
                         print("✅ 未到24小时继期窗口，不执行操作")
-                        content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}帐号\n"
+                        content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
                         content += f"⏰过期时间：{expiration_dt}\n"
                         content += f"🚀续期状态: 未到24小时继期窗口，不执行操作\n"
                         telegram_message = f"**Weirdhost继期信息**\n{content}"
