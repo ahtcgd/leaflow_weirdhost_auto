@@ -278,7 +278,7 @@ def run(playwright: Playwright) -> None:
                     if expiration_dt > now_kst + buffer_time:
                         print("✅ 未到24小时继期窗口，不执行操作")
                         content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
-                        content += f"⏰下次过期时间：{expiration_dt}\n"
+                        content += f"⏰服务器过期时间：{expiration_dt}\n"
                         content += f"🚀续期状态: 未到24小时继期窗口，不执行操作\n"
                         telegram_message = f"**Weirdhost继期信息**\n{content}"
                         send_telegram_message(telegram_message)
@@ -292,14 +292,13 @@ def run(playwright: Playwright) -> None:
                             # 重新获取最新的过期时间
                             CST = pytz.timezone('Asia/Shanghai')
                             current_time = datetime.now(CST).strftime("%Y-%m-%d %H:%M")
-
                             next_expiration_dt = get_expiration_date()
 
                             # 使用最新获取的时间发送消息
                             content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
-                            content += f"⏰当前继期时间: {current_time}\n"
-                            content += f"⏰下次过期时间: {next_expiration_dt}\n"
+                            content += f"⏰运行继期脚本时间: {current_time}\n"
                             content += f"🚀续期状态: 成功\n"
+                            content += f"⏰服务器下次过期时间: {next_expiration_dt}\n"
                             telegram_message = f"**Weirdhost继期信息**\n{content}"
                             send_telegram_message(telegram_message)
                         except Exception as e:
