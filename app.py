@@ -249,7 +249,7 @@ def run(playwright: Playwright) -> None:
                 def get_expiration_date():
                     try:
                         date_locator = page.get_by_text(re.compile(r"유통기한\s\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:"))
-                        # 捕获 text_content() 可能的超时异常
+                        # text_content() 使用 Playwright 的默认操作超时，通常是 30 秒 (30000ms)。
                         full_text = date_locator.text_content(timeout=20000)
                         print(f"定位到的元素内容: {full_text}")
                         match = re.search(r"(\d{4}-\d{2}-\d{2}\s\d{2}:\d{2})", full_text)
@@ -288,6 +288,9 @@ def run(playwright: Playwright) -> None:
                         try:
                             page.get_by_role("button", name="시간추가").click()
                             print("✅ 已经进入24小时继期窗口，成功完成继期。")
+
+                            print("⏳ 等待 10 秒，以确保服务器过期时间数据已更新...")
+                            time.sleep(10)
 
                             # 重新获取最新的过期时间
                             CST = pytz.timezone('Asia/Shanghai')
