@@ -275,6 +275,15 @@ def run(playwright: Playwright) -> None:
                     # 3. 缓冲时间，提前一天  days hours minutes seconds
                     buffer_time = timedelta(days=1)
                     # 4. 逻辑判断
+                    if expiration_dt > now_kst + buffer_time:
+                        print("✅ 未到24小时继期窗口，不执行操作")
+                        content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
+                        content += f"⏰服务器过期时间：{expiration_dt}\n"
+                        content += f"🚀续期状态: 未到24小时继期窗口，不执行操作\n"
+                        telegram_message = f"**Weirdhost继期信息**\n{content}"
+                        send_telegram_message(telegram_message)
+
+                    else:
                         # 执行继期操作
                         try:
                             page.get_by_role("button", name="시간추가").click()
