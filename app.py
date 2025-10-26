@@ -261,8 +261,7 @@ def run(playwright: Playwright) -> None:
                         print(f"找到到期日期字符串: {expiration_str}")
 
                         naive_dt = datetime.strptime(expiration_str, "%Y-%m-%d %H:%M")
-                        return naive_dt
-                        # return KST.localize(naive_dt)
+                        return KST.localize(naive_dt)
                     except Exception as e:
                         print(f"查找过期时间时发生错误: {e}")
                         return None
@@ -279,7 +278,7 @@ def run(playwright: Playwright) -> None:
                     if expiration_dt > now_kst + buffer_time:
                         print("✅ 未到24小时继期窗口，不执行操作")
                         content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
-                        content += f"⏰服务器过期时间：{expiration_dt}\n"
+                        content += f"⏰服务器过期时间：{expiration_dt.strftime('%Y-%m-%d %H:%M')}\n"
                         content += f"🚀续期状态: 未到24小时继期窗口，不执行操作\n"
                         telegram_message = f"**Weirdhost继期信息**\n{content}"
                         send_telegram_message(telegram_message)
@@ -302,7 +301,7 @@ def run(playwright: Playwright) -> None:
                             content = f"🆔WEIRDHOST帐号: {WEIRDHOST_EMAIL}\n"
                             content += f"⏰运行继期脚本时间: {current_time}\n"
                             content += f"🚀续期状态: 成功\n"
-                            content += f"⏰服务器下次过期时间: {next_expiration_dt}\n"
+                            content += f"⏰服务器下次过期时间: {next_expiration_dt.strftime('%Y-%m-%d %H:%M')}\n"
                             telegram_message = f"**Weirdhost继期信息**\n{content}"
                             send_telegram_message(telegram_message)
                         except Exception as e:
