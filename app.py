@@ -138,7 +138,6 @@ def run(playwright: Playwright) -> None:
                     wait_until="domcontentloaded"
                 )
 
-                page.get_by_role("button", name="Close").click()
                 page.get_by_role("button", name="登录", exact=True).click()
                 page.get_by_role("textbox", name="邮箱或手机号").fill(email)
                 page.get_by_role("textbox", name="密码").fill(password)
@@ -271,7 +270,7 @@ def run(playwright: Playwright) -> None:
                 # 2. 获取当前时间
                 now_kst = datetime.now(KST)
                 if expiration_dt:
-                    print(f"Now KST time: {now_kst}")
+                    print(f"Now KST time: {now_kst.strftime('%Y-%m-%d %H:%M')}")
                     # 3. 缓冲时间，提前一天  days hours minutes seconds
                     buffer_time = timedelta(days=1)
                     # 4. 逻辑判断
