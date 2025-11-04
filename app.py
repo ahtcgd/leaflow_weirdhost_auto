@@ -44,9 +44,15 @@ def run(playwright: Playwright) -> None:
     # Weirdhost 单账户配置
     WEIRDHOST_EMAIL = os.environ.get('WEIRDHOST_EMAIL', '')
     WEIRDHOST_PASSWORD = os.environ.get('WEIRDHOST_PASSWORD', '')
-    LOGIN_URL = os.environ.get('LOGIN_URL', '')
-    COOKIE_FILE = os.environ.get('COOKIE_FILE', 'cookies.json')
+    WEIRDHOST_LOGIN_URL = os.environ.get('WEIRDHOST_LOGIN_URL', '')
+    WEIRDHOST_COOKIE_FILE = os.environ.get('WEIRDHOST_COOKIE_FILE', '')
     remember_web_cookie = os.environ.get('REMEMBER_WEB_COOKIE', '')
+
+    # hnhost 单账户配置
+    HNHOST_LOGIN_URL = os.environ.get('HNHOST_LOGIN_URL', 'https://client.hnhost.net/index.php')
+    HNHOST_COOKIE_FILE = os.environ.get('HNHOST_COOKIE_FILE', '')
+    cf_clearance_cookie = os.environ.get('CF_CLEARANCE_COOKIE', '')
+    PHPSESSID = os.environ.get('PHPSESSID', '')
 
     # Telegram Bot 通知配置（可选）
     TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
@@ -77,36 +83,46 @@ def run(playwright: Playwright) -> None:
             print(f"Failed to send Telegram notification: {e}")
             return False
 
-    # 保存为 cookies.json
-    def save_cookies(context):
-        cookies = context.cookies()
-        try:
-            with open(COOKIE_FILE, 'w') as f:
-                json.dump(cookies, f)
-            print(f"Cookies已保存到{COOKIE_FILE}")
-        except Exception as e:
-            print(f"❌ 错误：保存cookies文件时发生未知错误：{e}")
+    # 保存cookies到指定文件。
+    def save_cookies(context, file_path: str):
+      cookies = context.cookies()
+      try:
+          with open(file_path, 'w', encoding='utf-8') as f:
+              json.dump(cookies, f, indent=4)
+          print(f"✅ Cookies 已成功保存到 '{file_path}'")
+      except Exception as e:
+          print(f"❌ 错误：保存 cookies 文件时发生未知错误：{e}")
 
-    # 从文件加载cookies
-    def load_cookies_from_file(file_path):
+    # 从文件加载 cookies
+    def load_cookies_from_file(file_path: str):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 cookies = json.load(f)
-                print(f"✅ 已从文件 '{file_path}' 成功加载 {len(cookies)} 个 cookies。")
-                return cookies
+                if isinstance(cookies, list):
+                    print(f"✅ 已从文件 '{file_path}' 成功加载 {len(cookies)} 个 cookies。")
+                    return cookies
+                else:
+                    print(f"❌ 错误：文件 '{file_path}' 内容格式不正确，期望是一个列表。")
+                    return None
+        except FileNotFoundError:
+            print(f"⚠️ 警告：文件 '{file_path}' 不存在，将返回 None。")
+            return None
+        except json.JSONDecodeError:
+            print(f"❌ 错误：文件 '{file_path}' JSON 格式错误，无法解析。")
+            return None
         except Exception as e:
-            print(f"❌ 错误：加载 {COOKIE_FILE} 文件时发生未知错误或 {COOKIE_FILE} 文件文件不存在")
+            print(f"❌ 错误：加载文件 '{file_path}' 时发生未知错误：{e}")
             return None
 
     # 尝试使用指定的 cookies 登录并返回是否成功
-    def try_cookie_login(context, page, cookies_to_add: list, login_url: str) -> bool:
+    def try_cookie_login(context, page, cookies_to_add: list, LOGIN_URL: str) -> bool:
         if not cookies_to_add:
             return False
 
         try:
             context.add_cookies(cookies_to_add)
             print("🍪 Cookies 已添加到浏览器上下文，尝试访问目标 URL。")
-            page.goto(login_url, wait_until='domcontentloaded')
+            page.goto(LOGIN_URL, wait_until='domcontentloaded')
 
             if "auth/login" not in page.url:
                 print("✅ Cookie 登录成功，已进入继期页面。")
@@ -176,29 +192,101 @@ def run(playwright: Playwright) -> None:
                 # 隔离清理：关闭当前账户的页面和上下文
                 page.close()
                 context.close()
-                time.sleep(10) # 账户间延迟，确保资源释放
 
-        time.sleep(30) # 两个主要任务之间的延迟
+        time.sleep(30) # 主要任务之间的延迟
     else:
          print("\n--- ℹ️ 跳过 Leaflow 任务：未配置 LEAFLOW_ACCOUNTS。 ---")
          time.sleep(5) # 保持延迟
 
+    # --- hnhost 单账户执行步骤 ---
+    hnhost_is_logged_in = False
+    if cf_clearance_cookie or os.path.exists(HNHOST_COOKIE_FILE):
+        print(f"\n--- 开始执行hnhost签到任务...")
+        context = browser.new_context() # 新的上下文
+        page = context.new_page()       # 新的页面
+
+        try:
+            # 使用 Cookie 会话登录 ---
+            if os.path.exists(HNHOST_COOKIE_FILE):
+              loaded_cookies = load_cookies_from_file(HNHOST_COOKIE_FILE)
+              if loaded_cookies:
+                  hnhost_is_logged_in = try_cookie_login(context, page, loaded_cookies, HNHOST_LOGIN_URL)
+
+            if not hnhost_is_logged_in and cf_clearance_cookie:
+                print("检测到 cf_clearance_cookie，尝试使用单一 Cookie 登录...")
+                context.clear_cookies()
+                session_cookie = {
+                    'name': 'cf_clearance',
+                    'value': cf_clearance_cookie,
+                    'name': 'PHPSESSID',
+                    'value': PHPSESSID,
+                    'domain': 'client.hnhost.net',
+                    'path': '/',
+                    'expires': int(time.time()) + 3600 * 24 * 365,
+                    'httpOnly': True,
+                    'secure': True,
+                    'sameSite': 'None'
+                }
+                hnhost_is_logged_in = try_cookie_login(context, page, [session_cookie], HNHOST_LOGIN_URL)
+                # if hnhost_is_logged_in: save_cookies(context, HNHOST_COOKIE_FILE) # (可选)
+
+            if hnhost_is_logged_in:
+                # 定位器预定义：先定义要操作的按钮定位器
+                reward_button = page.get_by_role("button", name="領取獎勵")
+                # 判断按钮是否可见
+                if reward_button.is_visible():
+                    print("發現 '領取獎勵' 按鈕，正在點擊...")
+                    reward_button.click()
+                    try:
+                        success_message = page.get_by_text("領取獎勵成功！")
+                        # 等待信息出现
+                        success_message.wait_for(state="visible")
+                        print("领取签到奖励成功！")
+                        content = f"🚀签到状态: 领取签到奖励成功！\n"
+                        telegram_message = f"**HNHOST签到领币信息**\n{content}"
+                        send_telegram_message(telegram_message)
+                    except Exception as e:
+                        print(f"等待成功消息时发生错误或超时: {e}")
+                        print("领取签到奖励失败或超时！")
+                else:
+                    print("已領取每日獎勵")
+                    content = f"🚀签到状态: 已領取每日獎勵！\n"
+                    telegram_message = f"**HNHOST签到领币信息**\n{content}"
+                    send_telegram_message(telegram_message)
+            else:
+                print("❌ 无法登录（Cookie 已失效，任务终止。")
+
+        except TimeoutError as te:
+            print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
+            page.screenshot(path="error_screenshot.png")
+        except Exception as e:
+            print("❌ 任务执行失败！")
+            page.screenshot(path="final_error_screenshot.png")
+            print(f"详细错误信息: {e}")
+        finally:
+            # 隔离清理：关闭当前账户的页面和上下文
+            page.close()
+            context.close()
+
+        time.sleep(30) # 主要任务之间的延迟
+    else:
+        print("\n--- ℹ️ 跳过 hnhost 任务：未配置 cf_clearance_cookie 或 不存在HNHOST_COOKIE_FILE文件 ---")
 
     # --- WEIRDHOST 单账户执行步骤 (保持原样，并增加隔离) ---
-    is_logged_in = False
-
-    if WEIRDHOST_EMAIL or remember_web_cookie:
+    weirdhost_is_logged_in = False
+    if WEIRDHOST_EMAIL or remember_web_cookie or os.path.exists(WEIRDHOST_COOKIE_FILE):
         print(f"\n--- 开始执行weirdhost继期任务...")
         context = browser.new_context() # 新的上下文
         page = context.new_page()       # 新的页面
 
         try:
             # --- 方案一：优先尝试使用 Cookie 会话登录 ---
-            loaded_cookies = load_cookies_from_file(COOKIE_FILE)
-            if loaded_cookies:
-                is_logged_in = try_cookie_login(context, page, loaded_cookies, LOGIN_URL)
+            if os.path.exists(WEIRDHOST_COOKIE_FILE):
+              loaded_cookies = load_cookies_from_file(WEIRDHOST_COOKIE_FILE)
+              if loaded_cookies:
+                  weirdhost_is_logged_in = try_cookie_login(context, page, loaded_cookies, WEIRDHOST_LOGIN_URL)
 
-            if not is_logged_in and remember_web_cookie:
+            if not weirdhost_is_logged_in and remember_web_cookie:
                 print("检测到 REMEMBER_WEB_COOKIE，尝试使用单一 Cookie 登录...")
                 context.clear_cookies()
                 session_cookie = {
@@ -211,11 +299,11 @@ def run(playwright: Playwright) -> None:
                     'secure': True,
                     'sameSite': 'Lax'
                 }
-                is_logged_in = try_cookie_login(context, page, [session_cookie], LOGIN_URL)
-                # if is_logged_in: save_cookies(context) # (可选)
+                weirdhost_is_logged_in = try_cookie_login(context, page, [session_cookie], WEIRDHOST_LOGIN_URL)
+                # if weirdhost_is_logged_in: save_cookies(context) # (可选)
 
             # --- 方案二：如果 Cookie 方案失败或未提供，则使用邮箱密码登录 ---
-            if not is_logged_in and WEIRDHOST_EMAIL and WEIRDHOST_PASSWORD:
+            if not weirdhost_is_logged_in and WEIRDHOST_EMAIL and WEIRDHOST_PASSWORD:
                 print("❌ Cookie 无效或不存在，使用 EMAIL/PASSWORD 开始执行登录任务...")
                 print(f"🚀 导航至 https://hub.weirdhost.xyz/auth/login ...")
                 page.goto(
@@ -234,15 +322,15 @@ def run(playwright: Playwright) -> None:
                 page.get_by_role("button", name="로그인", exact=True).click()
                 page.wait_for_url("https://hub.weirdhost.xyz/")
                 print("用户名密码登录成功。")
-                is_logged_in = True
+                weirdhost_is_logged_in = True
                 save_cookies(context)
 
                 page.get_by_role("link", name="Discord's Bot Server").click()
-                page.wait_for_url(LOGIN_URL, timeout=15000)
+                page.wait_for_url(WEIRDHOST_LOGIN_URL, timeout=15000)
                 print("已进入继期页面...")
 
             # --- 继期操作 ---
-            if is_logged_in:
+            if weirdhost_is_logged_in:
                 KST = pytz.timezone('Asia/Seoul')
                 # 从页面查找过期日期
                 def get_expiration_date():
