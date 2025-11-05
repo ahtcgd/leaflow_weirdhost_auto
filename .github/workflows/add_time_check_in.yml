@@ -44,7 +44,6 @@ jobs:
         with:
           name: error-screenshot and cookie.json
           path: |
-            error_screenshot.png
-            final_error_screenshot.png
+            *error_screenshot.png
             *cookie.json
           retention-days: 1
