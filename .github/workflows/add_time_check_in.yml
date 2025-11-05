@@ -14,7 +14,9 @@ jobs:
       WEIRDHOST_EMAIL: ${{ secrets.WEIRDHOST_EMAIL }}
       WEIRDHOST_PASSWORD: ${{ secrets.WEIRDHOST_PASSWORD }}
       REMEMBER_WEB_COOKIE: ${{ secrets.REMEMBER_WEB_COOKIE }}
-      LOGIN_URL: ${{ secrets.LOGIN_URL }}
+      WEIRDHOST_LOGIN_URL: ${{ secrets.WEIRDHOST_LOGIN_URL }}
+      CF_CLEARANCE_COOKIE: ${{ secrets.CF_CLEARANCE_COOKIE }}
+      PHPSESSID: ${{ secrets.PHPSESSID }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
