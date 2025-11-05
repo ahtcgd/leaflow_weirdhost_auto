@@ -211,11 +211,11 @@ def run(playwright: Playwright) -> None:
             except TimeoutError as te:
                 print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
                 status_message = f"任务执行失败：Playwright 操作超时"
-                page.screenshot(path="error_screenshot.png")
+                page.screenshot(path="leaflow_error_screenshot.png")
             except Exception as e:
                 print("❌ 任务执行失败！")
                 status_message = f"任务执行失败 (未知错误: {e})"
-                page.screenshot(path="final_error_screenshot.png") # 失败时强制截图
+                page.screenshot(path="leaflow_final_error_screenshot.png") # 失败时强制截图
                 print(f"详细错误信息: {e}")
             finally:
                 # 隔离清理：关闭当前账户的页面和上下文
@@ -290,21 +290,6 @@ def run(playwright: Playwright) -> None:
                     SUCCESS_ROLE_NAME="登出"
                 )
                 # if hnhost_is_logged_in: save_cookies(context, HNHOST_COOKIE_FILE)
-
-            if not hnhost_is_logged_in:
-                try:
-                    page.goto("https://client.hnhost.net/login.php")
-                    page.get_by_role("button", name="透過 Discord 登錄用戶平台").click()
-                    page.get_by_role("button", name="Authorize").click()
-                    hnhost_is_logged_in = try_cookie_login(
-                        context,
-                        page,
-                        HNHOST_LOGIN_URL,
-                        SUCCESS_ROLE_NAME="登出"
-                    )
-                except Exception as e:
-                    print(f"详细错误信息: {e}")
-                    page.screenshot(path="final_error_screenshot.png")
 
             if hnhost_is_logged_in:
                 # 定位器预定义：先定义要操作的按钮定位器
@@ -420,10 +405,10 @@ def run(playwright: Playwright) -> None:
 
         except TimeoutError as te:
             print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-            page.screenshot(path="error_screenshot.png")
+            page.screenshot(path="hnhost_error_screenshot.png")
         except Exception as e:
             print("❌ 任务执行失败！")
-            page.screenshot(path="final_error_screenshot.png")
+            page.screenshot(path="hnhost_final_error_screenshot.png")
             print(f"详细错误信息: {e}")
         finally:
             # 隔离清理：关闭当前账户的页面和上下文
@@ -573,10 +558,10 @@ def run(playwright: Playwright) -> None:
             send_telegram_message(telegram_message)
         except TimeoutError as te:
             print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-            page.screenshot(path="error_screenshot.png")
+            page.screenshot(path="weirdhost_error_screenshot.png")
         except Exception as e:
             print("❌ 任务执行失败！")
-            page.screenshot(path="final_error_screenshot.png")
+            page.screenshot(path="weirdhost_final_error_screenshot.png")
             print(f"详细错误信息: {e}")
 
         finally:
