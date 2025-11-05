@@ -1,0 +1,34 @@
+[
+    {
+        "name": "cf_clearance",
+        "value": "DTf5dqcRyww9pCXCJYuC_VUYvSjUHFJZ7_LBFSj2piE-1762331555-1.2.1.1-UFLeaLJMMPm0jx54MNX3hAu5JL.MTaHWOKLd8mdSFPPdfXpewnuxIDMaRBoNpC9qoDfaWOKg.Xp05kS73w5XOg2NLvSqoYMMi94E.JdKKkn1uY5hbRXQYoENbcV07aDP2.z_QcBr5qZDR6K6T9.A9vY7HFloqDh3CYXQVchE_47br7e2spY3RYnaucifRR_iZzZ4yeP6KDAigXwZdUM5_9Wc4zFVWHD_Z30Khl7eI0I",
+        "domain": "client.hnhost.net",
+        "path": "/",
+        "expires": 1793888383,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "None"
+    },
+    {
+        "name": "PHPSESSID",
+        "value": "g2f5secg7uqkembsonpqrr3rvv",
+        "domain": "client.hnhost.net",
+        "path": "/",
+        "expires": 1793888383,
+        "httpOnly": false,
+        "secure": false,
+        "sameSite": "Lax"
+    },
+    {
+        "name": "cf_clearance",
+        "value": "O1GzKaxkZFZplcJOFDukr9EH1tO5lFuPh05MmOIozLQ-1762352394-1.2.1.1-IuhMD5qkSc3hjJy9bwgqEO0pp.TWa3wF_w2VIFJ56dy05yf0FF4HQN_lQeugzM3RWdfnLjRSXMpZDdybwtZhp.vpPsDQHwCfsfD6aM7vRwaMAREhSgwTtzIlv.Wx_nXS0I3ARzvovZ0IPwEZDofs57WH_e5gm6ukiU9aYDxY5Up2r78jGmJ.1tiU5T7pGAOcs4.pt8NqBFi8ce1dB5ktQKzPqtIE1gDPksCuuDUFOrg",
+        "domain": ".hnhost.net",
+        "path": "/",
+        "expires": 1793888395.090233,
+        "httpOnly": true,
+        "secure": true,
+        "sameSite": "None",
+        "partitionKey": "https://hnhost.net",
+        "_crHasCrossSiteAncestor": false
+    }
+]
