@@ -236,8 +236,12 @@ def run(playwright: Playwright) -> None:
     hnhost_is_logged_in = False
     if cf_clearance_cookie or os.path.exists(HNHOST_COOKIE_FILE):
         print(f"\n--- 开始执行hnhost签到任务...")
-        context = browser.new_context() # 新的上下文
-        page = context.new_page()       # 新的页面
+        # 新的上下文 增加 'user_agent' 伪装
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+        )
+        # 新的页面
+        page = context.new_page()
 
         try:
             # 使用 Cookie 会话登录 ---
