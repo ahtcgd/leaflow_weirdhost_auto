@@ -115,22 +115,53 @@ def run(playwright: Playwright) -> None:
             return None
 
     # 尝试使用指定的 cookies 登录并返回是否成功
-    def try_cookie_login(context, page, cookies_to_add: list, LOGIN_URL: str) -> bool:
-        if not cookies_to_add:
+    def try_cookie_login(
+        context,
+        page,
+        cookies_to_add: list,
+        VERIFY_URL: str,
+        # 登录成功标志 - 至少提供一个
+        SUCCESS_SELECTOR: str = None,           # CSS 或 XPath 字符串 (例如 "a[href*='logout']")
+        SUCCESS_ROLE_NAME: str = None,          # Playwright 角色名 (例如 "登出")
+        LOGIN_URL_PATTERN: str = None           # 辅助判断：登录页 URL 包含的模式 (例如 "login.php")
+    ) -> bool:
+        if not cookies_to_add or (SUCCESS_SELECTOR is None and SUCCESS_ROLE_NAME is None):
+            print("⚠️ 未提供 cookies 或成功判断标志。")
             return False
 
         try:
-            context.add_cookies(cookies_to_add)
-            print("🍪 Cookies 已添加到浏览器上下文，尝试访问目标 URL。")
-            page.goto(LOGIN_URL, wait_until='domcontentloaded')
+            if cookies_to_add:
+              # 1. 设置 Cookie
+              context.add_cookies(cookies_to_add)
+              print("🍪 Cookies 已添加到浏览器上下文。")
 
-            if "auth/login" not in page.url:
-                print("✅ Cookie 登录成功，已进入继期页面。")
+            # 2. 访问验证页面
+            page.goto(VERIFY_URL, wait_until='networkidle')
+            print(f"尝试访问验证 URL: {VERIFY_URL}")
+
+            # 3. 确定用于判断成功的 Locator
+            locator_success = None
+            if SUCCESS_ROLE_NAME:
+                # 优先使用最精确的 get_by_role
+                locator_success = page.get_by_role("link", name=SUCCESS_ROLE_NAME)
+            elif SUCCESS_SELECTOR:
+                # 否则使用 CSS/XPath
+                locator_success = page.locator(SUCCESS_SELECTOR)
+
+            # 4. 精确判断：检查登录成功的标志元素
+            # 使用 is_visible() 只检查第一个匹配项是否可见
+            if locator_success and locator_success.first.is_visible():
+                print(f"✅ Cookie 登录成功! 找到了登际成功标志。")
                 return True
             else:
-                print("❌ Cookie 登录失败，可能已过期。")
-                return False
+                # 5. 辅助判断：检查是否被强制重定向回登录页 (可选)
+                if LOGIN_URL_PATTERN and LOGIN_URL_PATTERN in page.url:
+                    print(f"❌ Cookie 登录失败，页面被重定向回登录页。匹配模式: {LOGIN_URL_PATTERN}")
+                else:
+                    print(f"❌ Cookie 登录失败，未在 {page.url} 上找到登录成功标志。")
 
+                page.screenshot(path="cookie_login_fail_screenshot.png")
+                return False
         except Exception as e:
             print(f"⚠️ Cookie 登录尝试时发生错误：{e}")
             return False
@@ -213,7 +244,13 @@ def run(playwright: Playwright) -> None:
             if os.path.exists(HNHOST_COOKIE_FILE):
               loaded_cookies = load_cookies_from_file(HNHOST_COOKIE_FILE)
               if loaded_cookies:
-                  hnhost_is_logged_in = try_cookie_login(context, page, loaded_cookies, HNHOST_LOGIN_URL)
+                  hnhost_is_logged_in = try_cookie_login(
+                      context,
+                      page,
+                      loaded_cookies,
+                      HNHOST_LOGIN_URL,
+                      SUCCESS_ROLE_NAME="登出"
+                  )
 
             if not hnhost_is_logged_in and cf_clearance_cookie:
                 print("检测到 CF_CLEARANCE_COOKIE，尝试使用单一 Cookie 登录...")
@@ -241,8 +278,29 @@ def run(playwright: Playwright) -> None:
                         **base_cookie_data
                     },
                 ]
-                hnhost_is_logged_in = try_cookie_login(context, page, session_cookies, HNHOST_LOGIN_URL)
-                # if hnhost_is_logged_in: save_cookies(context, HNHOST_COOKIE_FILE) # (可选)
+                hnhost_is_logged_in = try_cookie_login(
+                    context,
+                    page,
+                    session_cookies,
+                    HNHOST_LOGIN_URL,
+                    SUCCESS_ROLE_NAME="登出"
+                )
+                # if hnhost_is_logged_in: save_cookies(context, HNHOST_COOKIE_FILE)
+
+            if not hnhost_is_logged_in:
+                try:
+                    page.goto("https://client.hnhost.net/login.php")
+                    page.get_by_role("button", name="透過 Discord 登錄用戶平台").click()
+                    page.get_by_role("button", name="Authorize").click()
+                    hnhost_is_logged_in = try_cookie_login(
+                        context,
+                        page,
+                        HNHOST_LOGIN_URL,
+                        SUCCESS_ROLE_NAME="登出"
+                    )
+                except Exception as e:
+                    print(f"详细错误信息: {e}")
+                    page.screenshot(path="final_error_screenshot.png")
 
             if hnhost_is_logged_in:
                 # 定位器预定义：先定义要操作的按钮定位器
@@ -269,7 +327,7 @@ def run(playwright: Playwright) -> None:
                 CST = pytz.timezone('Asia/Shanghai')
                 def extract_and_format_date():
                     # 找到所有匹配的元素 (例如，可能有多个日期单元格)
-                    date_pattern = re.compile(r"\d{2}/\d{2}")
+                    date_pattern = re.compile(r"\d{4}/\d{2}/\d{2}")
                     date_cells = page.locator("td").filter(has_text=date_pattern)
                     try:
                         # 确保 Locator 至少找到一个匹配项
@@ -278,42 +336,43 @@ def run(playwright: Playwright) -> None:
                         print(f"错误：调用 date_cells.count() 时发生 Playwright 异常: {e}")
                         return None
                     if count == 0:
-                        print("错误：未找到符合 /MM/DD 格式的日期单元格。")
+                        print("错误：未找到符合 YYYY/MM/DD 格式的日期单元格。")
                         return None
                     # 获取文本内容（如果 count > 0，这里会执行）
                     locator_text = date_cells.first.inner_text()
 
-                    # 1. 从提取的文本中再次使用正则表达式提取月份和日期
-                    match = re.search(r'/(\d{2})/(\d{2})', locator_text)
+                    # 从文本中提取 YYYY、MM 和 DD
+                    match = re.search(r'(\d{4})/(\d{2})/(\d{2})', locator_text)
                     if match:
-                        month_str = match.group(1)
-                        day_str = match.group(2)
-                        # 2. 获取当前年份和时间
+                        # 严格按照正则表达式的顺序赋值
+                        year_str = match.group(1)
+                        month_str = match.group(2)
+                        day_str = match.group(3)
+
                         now = datetime.now(CST)
-                        current_year = now.year
-                        # 3. 组合成目标 datetime 对象 (YYYY-MM-DD HH:MM)
+                        # 2. 组合成目标 datetime 对象 (YYYY-MM-DD HH:MM)
                         try:
                             # 目标日期字符串
-                            date_string = f"{current_year}-{month_str}-{day_str} {now.hour}:{now.minute:02}"
+                            date_string = f"{year_str}-{month_str}-{day_str} {now.hour}:{now.minute:02}"
                             # 转换为 datetime 对象
                             get_dt = datetime.strptime(date_string, '%Y-%m-%d %H:%M')
                             aware_dt = CST.localize(get_dt)
                             print(f"✅ 成功提取并转换日期。")
                             print(f"原始文本: {locator_text}")
-                            print(f"目标日期时间: {aware_dt.strftime('%Y-%m-%d')}")
+                            print(f"目标日期时间: {aware_dt.strftime('%Y-%m-%d %H:%M')}")
                             return aware_dt
                         except ValueError as e:
-                            print(f"❌ 错误：创建日期时间对象失败。日期组合 {current_year}-{month_str}-{day_str} 无效。错误: {e}")
+                            print(f"❌ 错误：创建日期时间对象失败。日期组合 {year_str}-{month_str}-{day_str} 无效。错误: {e}")
                             return None
                     else:
-                        print(f"❌ 错误：从文本 '{locator_text}' 中无法解析出 /MM/DD 格式。")
+                        print(f"❌ 错误：从文本 '{locator_text}' 中无法解析出 YYYY/MM/DD 格式。")
                         return None
 
                 expiration_dt = extract_and_format_date()
                 now_time = datetime.now(CST)
                 if expiration_dt:
                     # 格式化打印时使用 strftime
-                    print(f"now_time: {now_time.strftime('%Y-%m-%d')}")
+                    print(f"Now CST time: {now_time.strftime('%Y-%m-%d')}")
                     # 缓冲时间，提前36小时，days hours minutes seconds
                     buffer_time = timedelta(hours=36)
                     # 逻辑判断
@@ -383,23 +442,38 @@ def run(playwright: Playwright) -> None:
             if os.path.exists(WEIRDHOST_COOKIE_FILE):
               loaded_cookies = load_cookies_from_file(WEIRDHOST_COOKIE_FILE)
               if loaded_cookies:
-                  weirdhost_is_logged_in = try_cookie_login(context, page, loaded_cookies, WEIRDHOST_LOGIN_URL)
+                  weirdhost_is_logged_in = try_cookie_login(
+                      context,
+                      page,
+                      loaded_cookies,
+                      WEIRDHOST_LOGIN_URL,
+                      SUCCESS_ROLE_NAME="콘솔"
+                  )
 
             if not weirdhost_is_logged_in and remember_web_cookie:
                 print("检测到 REMEMBER_WEB_COOKIE，尝试使用单一 Cookie 登录...")
                 context.clear_cookies()
-                session_cookie = {
-                    'name': 'remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d',
-                    'value': remember_web_cookie,
-                    'domain': 'hub.weirdhost.xyz',
-                    'path': '/',
-                    'expires': int(time.time()) + 3600 * 24 * 365,
-                    'httpOnly': True,
-                    'secure': True,
-                    'sameSite': 'Lax'
-                }
-                weirdhost_is_logged_in = try_cookie_login(context, page, [session_cookie], WEIRDHOST_LOGIN_URL)
-                # if weirdhost_is_logged_in: save_cookies(context) # (可选)
+
+                session_cookie = [
+                    {
+                        'name': 'remember_web_59ba36addc2b2f9401580f014c7f58ea4e30989d',
+                        'value': remember_web_cookie,
+                        'domain': 'hub.weirdhost.xyz',
+                        'path': '/',
+                        'expires': int(time.time()) + 3600 * 24 * 365,
+                        'httpOnly': True,
+                        'secure': True,
+                        'sameSite': 'Lax'
+                    }
+                ]
+                weirdhost_is_logged_in = try_cookie_login(
+                    context,
+                    page,
+                    session_cookie,
+                    WEIRDHOST_LOGIN_URL,
+                    SUCCESS_ROLE_NAME="콘솔"
+                )
+                # if weirdhost_is_logged_in: save_cookies(context, WEIRDHOST_COOKIE_FILE)
 
             # --- 方案二：如果 Cookie 方案失败或未提供，则使用邮箱密码登录 ---
             if not weirdhost_is_logged_in and WEIRDHOST_EMAIL and WEIRDHOST_PASSWORD:
