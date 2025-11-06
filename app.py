@@ -130,7 +130,9 @@ def run(playwright: Playwright) -> None:
               print("🍪 Cookies 已添加到浏览器上下文。")
 
             # 2. 访问验证页面
-            page.goto(VERIFY_URL, wait_until='networkidle')
+            page.goto(VERIFY_URL, wait_until='domcontentloaded')
+            # 慢
+            # page.goto(VERIFY_URL, wait_until='networkidle')
             print(f"尝试访问验证 URL: {VERIFY_URL}")
 
             # 3. 确定用于判断成功的 Locator
