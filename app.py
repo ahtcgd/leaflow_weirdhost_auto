@@ -208,20 +208,19 @@ def run(playwright: Playwright) -> None:
                     send_telegram_message(telegram_message)
 
             except TimeoutError as te:
-                print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
+                print(f"❌ 任务执行失败：Playwright (操作超时：{te})")
+                page.screenshot(path="leaflow_error_screenshot.png")
                 content = f"🆔LEAFLOW帐号: {email_id}\n"
                 content += f"🚀签到状态: 任务执行失败：Playwright 操作超时\n"
                 telegram_message = f"**LEAFLOW签到信息**\n{content}"
                 send_telegram_message(telegram_message)
-                page.screenshot(path="leaflow_error_screenshot.png")
             except Exception as e:
-                print("❌ 任务执行失败！")
+                print("❌ 任务执行失败：详细错误信息: {e}")
+                page.screenshot(path="leaflow_final_error_screenshot.png") # 失败时强制截图
                 content = f"🆔LEAFLOW帐号: {email_id}\n"
                 content += f"🚀签到状态: 任务执行失败 (未知错误: {e})\n"
                 telegram_message = f"**LEAFLOW签到信息**\n{content}"
                 send_telegram_message(telegram_message)
-                page.screenshot(path="leaflow_final_error_screenshot.png") # 失败时强制截图
-                print(f"详细错误信息: {e}")
             finally:
                 # 隔离清理：关闭当前账户的页面和上下文
                 page.close()
