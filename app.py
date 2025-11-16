@@ -171,8 +171,6 @@ def run(playwright: Playwright) -> None:
             page = context.new_page()
             email_id = email.split('@')[0]
             print(f"\n[Leaflow - {email_id}] 账号 #{index + 1} ({email}) 开始执行...")
-            content = f"🆔LEAFLOW帐号: {email_id}\n"
-            status_message = None # 用于存储最终的签到状态描述
 
             try:
                 print(f"[{email_id}] 🚀 导航至 leaflow.net...")
@@ -198,31 +196,39 @@ def run(playwright: Playwright) -> None:
                 try:
                     page.locator("#app iframe").content_frame.get_by_role("button", name=" 立即签到").click()
                     print(f"✅ 任务执行成功: [{email_id}] 签到操作已完成。")
-                    status_message = "签到操作已完成"
+                    content = f"🆔LEAFLOW帐号: {email_id}\n"
+                    content += f"🚀签到状态: 签到操作已完成\n"
+                    telegram_message = f"**LEAFLOW签到信息**\n{content}"
+                    send_telegram_message(telegram_message)
                 except Exception as e:
                     print(f"✅ [{email_id}] 今日已经签到！")
-                    status_message = "今日已经签到！"
+                    content = f"🆔LEAFLOW帐号: {email_id}\n"
+                    content += f"🚀签到状态: 今日已经签到！\n"
+                    telegram_message = f"**LEAFLOW签到信息**\n{content}"
+                    send_telegram_message(telegram_message)
 
             except TimeoutError as te:
                 print(f"❌ 任务执行失败：Playwright 操作超时 ({te})")
-                status_message = f"任务执行失败：Playwright 操作超时"
+                content = f"🆔LEAFLOW帐号: {email_id}\n"
+                content += f"🚀签到状态: 任务执行失败：Playwright 操作超时\n"
+                telegram_message = f"**LEAFLOW签到信息**\n{content}"
+                send_telegram_message(telegram_message)
                 page.screenshot(path="leaflow_error_screenshot.png")
             except Exception as e:
                 print("❌ 任务执行失败！")
-                status_message = f"任务执行失败 (未知错误: {e})"
+                content = f"🆔LEAFLOW帐号: {email_id}\n"
+                content += f"🚀签到状态: 任务执行失败 (未知错误: {e})\n"
+                telegram_message = f"**LEAFLOW签到信息**\n{content}"
+                send_telegram_message(telegram_message)
                 page.screenshot(path="leaflow_final_error_screenshot.png") # 失败时强制截图
                 print(f"详细错误信息: {e}")
             finally:
                 # 隔离清理：关闭当前账户的页面和上下文
                 page.close()
                 context.close()
+                time.sleep(10) # 账户间延迟，确保资源释放
 
-            if status_message:
-                content += f"🚀签到状态: {status_message}\n"
-                telegram_message = f"**LEAFLOW签到信息**\n{content}"
-                send_telegram_message(telegram_message)
-
-        time.sleep(30) # 主要任务之间的延迟
+        time.sleep(30) # 两个主要任务之间的延迟
     else:
          print("\n--- ℹ️ 跳过 Leaflow 任务：未配置 LEAFLOW_ACCOUNTS。 ---")
          time.sleep(5) # 保持延迟
